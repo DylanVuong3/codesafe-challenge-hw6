@@ -6,5 +6,5 @@ challenges:
     name: Format of Challenges
   - id: saving-files
     name: Saving Files in the Environment
-  - id: my-challenges
+  - id: my-challenge
     name: My Challenge
