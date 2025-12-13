@@ -1,8 +1,7 @@
 # backups/modify_me.py
 #
 # Immutable backup of the original challenge source code.
-# This file represents the baseline implementation and does NOT
-# include difficulty labels.
+# This file represents the baseline implementation and does NOT include difficulty labels.
 
 class Challenge:
     """
