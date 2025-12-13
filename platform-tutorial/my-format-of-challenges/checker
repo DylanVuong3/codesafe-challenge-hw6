@@ -1,1 +1,175 @@
+#!/usr/bin/env python3
+import traceback
+import modify_me
 
+VALID_DIFFICULTIES = {"Easy", "Medium", "Hard"}
+VALID_STATUSES = {"draft", "published"}
+
+
+def run_tests(_=None):
+    """
+    Returns True if all tests pass, False otherwise.
+    Only verifies difficulty label functionality while ensuring
+    original status functionality is not broken.
+    """
+
+    print("\n[+] Running challenge difficulty tests...\n")
+
+    try:
+        # ------------------------------------------------
+        # 1. Constructor must accept difficulty parameter
+        # ------------------------------------------------
+        try:
+            c = modify_me.Challenge(
+                "XSS",
+                "Fix reflected XSS vulnerability",
+                "draft",
+                "Easy"
+            )
+        except TypeError:
+            print(
+                "[FAIL] Challenge constructor does not accept difficulty.\n"
+                "Expected: Challenge(title, description, status, difficulty)"
+            )
+            return False
+        except Exception:
+            print("[FAIL] Unexpected error during Challenge initialization.")
+            traceback.print_exc()
+            return False
+
+        # ------------------------------------------------
+        # 2. Original functionality: status must remain intact
+        # ------------------------------------------------
+        if not hasattr(c, "status"):
+            print("[FAIL] Original functionality broken: missing status attribute.")
+            return False
+
+        if c.status != "draft":
+            print(
+                f"[FAIL] Status incorrectly set.\n"
+                f"Expected 'draft', got '{c.status}'."
+            )
+            return False
+
+        # ------------------------------------------------
+        # 3. get_difficulty() must exist and work
+        # ------------------------------------------------
+        if not hasattr(c, "get_difficulty"):
+            print(
+                "[FAIL] Missing get_difficulty() method.\n"
+                "Expected: get_difficulty()"
+            )
+            return False
+
+        try:
+            difficulty = c.get_difficulty()
+        except Exception:
+            print("[FAIL] get_difficulty() raised an exception.")
+            traceback.print_exc()
+            return False
+
+        if difficulty != "Easy":
+            print(
+                f"[FAIL] get_difficulty() returned '{difficulty}'.\n"
+                "Expected 'Easy'."
+            )
+            return False
+
+        # ------------------------------------------------
+        # 4. Accept only valid difficulty values
+        # ------------------------------------------------
+        for level in VALID_DIFFICULTIES:
+            try:
+                test = modify_me.Challenge(
+                    "Test",
+                    "Testing difficulty validation",
+                    "draft",
+                    level
+                )
+                returned = test.get_difficulty()
+                if returned != level:
+                    print(
+                        f"[FAIL] Difficulty mismatch.\n"
+                        f"Expected '{level}', got '{returned}'."
+                    )
+                    return False
+            except Exception:
+                print(f"[FAIL] Valid difficulty '{level}' was rejected.")
+                traceback.print_exc()
+                return False
+
+        # ------------------------------------------------
+        # 5. Reject invalid difficulty values
+        # ------------------------------------------------
+        invalid_values = [
+            "easy", "MEDIUM", "hard",
+            "Impossible", "",
+            None, 123,
+            "DROP TABLE challenges;"
+        ]
+
+        for bad in invalid_values:
+            try:
+                modify_me.Challenge(
+                    "Bad",
+                    "Bad difficulty test",
+                    "draft",
+                    bad
+                )
+                print(
+                    f"[FAIL] Invalid difficulty '{bad}' was accepted.\n"
+                    "Only Easy, Medium, Hard are allowed."
+                )
+                return False
+            except (ValueError, TypeError):
+                pass
+            except Exception:
+                print(
+                    f"[FAIL] Invalid difficulty '{bad}' raised the wrong exception."
+                )
+                traceback.print_exc()
+                return False
+
+        # ------------------------------------------------
+        # 6. Difficulty must appear in summary
+        # ------------------------------------------------
+        try:
+            c2 = modify_me.Challenge(
+                "SQLi",
+                "Prevent SQL injection",
+                "published",
+                "Medium"
+            )
+            summary = c2.get_summary()
+        except Exception:
+            print("[FAIL] get_summary() raised an exception.")
+            traceback.print_exc()
+            return False
+
+        expected_summary = (
+          "SQLi: Prevent SQL injection\n"
+          "Difficulty: Medium"
+        )
+
+        if summary != expected_summary:
+        print(
+          "[FAIL] get_summary() output format is incorrect.\n\n"
+          f"Expected:\n{expected_summary}\n\n"
+          f"Got:\n{summary}"
+        )
+
+    except Exception:
+        print("[FAIL] Unexpected checker failure.")
+        traceback.print_exc()
+        return False
+
+    print("[+] All difficulty tests passed.\n")
+    return True
+
+if __name__ == "__main__":
+    if run_tests(None):
+        print("All tests pass! Reading and displaying flag...")
+        with open("/flag") as f:
+            print(f.read())
+    else:
+        print("Some tests fail. Please review the test cases and errors, then try again.")
